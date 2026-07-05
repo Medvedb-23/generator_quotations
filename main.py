@@ -1,3 +1,4 @@
+from database import DatabaseManager
 import sys
 import random
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QListWidgetItem
@@ -9,6 +10,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         loadUi('main_window.ui', self)
+        self.db = DatabaseManager()
+        self.db.init_db()
 
         layout = self.centralWidget().layout()
         if layout:
@@ -79,7 +82,6 @@ class MainWindow(QMainWindow):
         self.combo_author.addItems(["Все", "Джон Леннон", "Оскар Уайльд", "Декарт"])
         self.combo_category.addItems(["Все", "Мотивация", "Философия"])
 
-    # ---------- Слоты ----------
     def _on_add(self):
         print("Добавить")
         self.statusBar().showMessage("Добавление (заглушка)")
@@ -138,6 +140,8 @@ class MainWindow(QMainWindow):
             QMessageBox.No
         )
         if reply == QMessageBox.Yes:
+            if hasattr(self, 'db'):
+                self.db.close()
             event.accept()
         else:
             event.ignore()
