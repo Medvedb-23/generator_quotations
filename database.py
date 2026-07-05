@@ -9,7 +9,7 @@ class DatabaseManager:
 
     def init_db(self):
         self.conn = sqlite3.connect(DB_NAME)
-        self.conn.row_factory = sqlite3.Row  # доступ по именам колонок
+        self.conn.row_factory = sqlite3.Row
         cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS quotations (
@@ -38,6 +38,11 @@ class DatabaseManager:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM quotations WHERE category = ? ORDER BY text", (category,))
         return cursor.fetchall()
+
+    def get_by_id(self, id):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM quotations WHERE id = ?", (id,))
+        return cursor.fetchone()
 
     def insert(self, data):
         cursor = self.conn.cursor()
