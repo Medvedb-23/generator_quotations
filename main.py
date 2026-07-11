@@ -8,12 +8,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QSettings
 from PyQt5.QtGui import QClipboard, QTextOption, QKeySequence
-from PyQt5.uic import loadUi
 from PIL import Image
 from database import DatabaseManager
 from styles import LIGHT_STYLESHEET, DARK_STYLESHEET
 from image_utils import copy_image_to_assets, load_scaled_pixmap
 from csv_utils import export_csv, import_csv
+from ui_main_window import Ui_MainWindow
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -21,22 +21,23 @@ logger = logging.getLogger(__name__)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        loadUi('main_window.ui', self)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
-        self.actionImport.setText("Импорт CSV...\tCtrl+I")
-        self.actionExport.setText("Экспорт CSV...\tCtrl+E")
-        self.actionDarkTheme.setText("Тёмная тема\tCtrl+T")
+        self.ui.actionImport.setText("Импорт CSV...\tCtrl+I")
+        self.ui.actionExport.setText("Экспорт CSV...\tCtrl+E")
+        self.ui.actionDarkTheme.setText("Тёмная тема\tCtrl+T")
 
-        self.btn_add.setToolTip("Добавить новую цитату (Ctrl+N)")
-        self.btn_edit.setToolTip("Редактировать выбранную цитату (Ctrl+Shift+E)")
-        self.btn_delete.setToolTip("Удалить выбранную цитату (Delete)")
-        self.btn_random.setToolTip("Показать случайную цитату (Ctrl+R)")
-        self.btn_copy.setToolTip("Скопировать цитату в буфер (Ctrl+C)")
-        self.btn_load_image.setToolTip("Загрузить изображение для цитаты")
+        self.ui.btn_add.setToolTip("Добавить новую цитату (Ctrl+N)")
+        self.ui.btn_edit.setToolTip("Редактировать выбранную цитату (Ctrl+Shift+E)")
+        self.ui.btn_delete.setToolTip("Удалить выбранную цитату (Delete)")
+        self.ui.btn_random.setToolTip("Показать случайную цитату (Ctrl+R)")
+        self.ui.btn_copy.setToolTip("Скопировать цитату в буфер (Ctrl+C)")
+        self.ui.btn_load_image.setToolTip("Загрузить изображение для цитаты")
 
-        self.lbl_quotation.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
-        self.lbl_quotation.document().setDocumentMargin(0)
-        self.lbl_image.setScaledContents(False)
+        self.ui.lbl_quotation.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        self.ui.lbl_quotation.document().setDocumentMargin(0)
+        self.ui.lbl_image.setScaledContents(False)
 
         layout = self.centralWidget().layout()
         if layout:
@@ -68,11 +69,11 @@ class MainWindow(QMainWindow):
     def _apply_theme(self, theme):
         if theme == "dark":
             self.setStyleSheet(DARK_STYLESHEET)
-            self.actionDarkTheme.setChecked(True)
+            self.ui.actionDarkTheme.setChecked(True)
             self.current_theme = "dark"
         else:
             self.setStyleSheet(LIGHT_STYLESHEET)
-            self.actionDarkTheme.setChecked(False)
+            self.ui.actionDarkTheme.setChecked(False)
             self.current_theme = "light"
         self.settings.setValue("theme", self.current_theme)
         if self.current_display_path:
@@ -87,28 +88,28 @@ class MainWindow(QMainWindow):
             self._apply_theme("light")
 
     def _toggle_theme_shortcut(self):
-        self.actionDarkTheme.trigger()
+        self.ui.actionDarkTheme.trigger()
 
     def _set_quotation_text(self, text):
         if text and text != "Нажмите 'Случайная цитата'":
-            self.lbl_quotation.setText(f'"{text}"')
+            self.ui.lbl_quotation.setText(f'"{text}"')
         else:
-            self.lbl_quotation.setText(text)
-        self.lbl_quotation.setAlignment(Qt.AlignCenter)
+            self.ui.lbl_quotation.setText(text)
+        self.ui.lbl_quotation.setAlignment(Qt.AlignCenter)
 
     def _bind_signals(self):
-        self.btn_add.clicked.connect(self._on_add)
-        self.btn_edit.clicked.connect(self._on_edit)
-        self.btn_delete.clicked.connect(self._on_delete)
-        self.btn_random.clicked.connect(self._on_random)
-        self.btn_copy.clicked.connect(self._on_copy)
-        self.btn_load_image.clicked.connect(self._on_load_image)
-        self.actionImport.triggered.connect(lambda: import_csv(self, self.db))
-        self.actionExport.triggered.connect(lambda: export_csv(self, self.db))
-        self.actionDarkTheme.triggered.connect(self._toggle_theme)
-        self.list_quotations.itemClicked.connect(self._on_item_clicked)
-        self.combo_author.currentIndexChanged.connect(self._on_filter_changed)
-        self.combo_category.currentIndexChanged.connect(self._on_filter_changed)
+        self.ui.btn_add.clicked.connect(self._on_add)
+        self.ui.btn_edit.clicked.connect(self._on_edit)
+        self.ui.btn_delete.clicked.connect(self._on_delete)
+        self.ui.btn_random.clicked.connect(self._on_random)
+        self.ui.btn_copy.clicked.connect(self._on_copy)
+        self.ui.btn_load_image.clicked.connect(self._on_load_image)
+        self.ui.actionImport.triggered.connect(lambda: import_csv(self, self.db))
+        self.ui.actionExport.triggered.connect(lambda: export_csv(self, self.db))
+        self.ui.actionDarkTheme.triggered.connect(self._toggle_theme)
+        self.ui.list_quotations.itemClicked.connect(self._on_item_clicked)
+        self.ui.combo_author.currentIndexChanged.connect(self._on_filter_changed)
+        self.ui.combo_category.currentIndexChanged.connect(self._on_filter_changed)
 
     def _setup_shortcuts(self):
         QShortcut(QKeySequence("Ctrl+R"), self, self._on_random)
@@ -121,7 +122,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme_shortcut)
 
     def _refresh_list(self, author=None, category=None):
-        self.list_quotations.clear()
+        self.ui.list_quotations.clear()
         try:
             if author and author != "Все":
                 records = self.db.get_by_author(author)
@@ -136,7 +137,7 @@ class MainWindow(QMainWindow):
         for rec in records:
             item = QListWidgetItem(rec['text'])
             item.setData(Qt.UserRole, rec['id'])
-            self.list_quotations.addItem(item)
+            self.ui.list_quotations.addItem(item)
         self.statusBar().showMessage(f"Загружено {len(records)} цитат")
 
     def _load_filters(self):
@@ -144,12 +145,12 @@ class MainWindow(QMainWindow):
             records = self.db.get_all()
             authors = {rec['author'] for rec in records if rec['author']}
             categories = {rec['category'] for rec in records if rec['category']}
-            self.combo_author.clear()
-            self.combo_author.addItem("Все")
-            self.combo_author.addItems(sorted(authors))
-            self.combo_category.clear()
-            self.combo_category.addItem("Все")
-            self.combo_category.addItems(sorted(categories))
+            self.ui.combo_author.clear()
+            self.ui.combo_author.addItem("Все")
+            self.ui.combo_author.addItems(sorted(authors))
+            self.ui.combo_category.clear()
+            self.ui.combo_category.addItem("Все")
+            self.ui.combo_category.addItems(sorted(categories))
         except Exception as e:
             logger.error(f"Load filters error: {e}")
             QMessageBox.critical(self, "Ошибка", f"Не удалось загрузить фильтры: {e}")
@@ -157,19 +158,19 @@ class MainWindow(QMainWindow):
     def _display_image(self, path):
         self.current_display_path = path
         if not path or not os.path.exists(path):
-            self.lbl_image.clear()
-            self.lbl_image.setText("Нет изображения")
-            self.lbl_image.setAlignment(Qt.AlignCenter)
+            self.ui.lbl_image.clear()
+            self.ui.lbl_image.setText("Нет изображения")
+            self.ui.lbl_image.setAlignment(Qt.AlignCenter)
             return
-        scaled = load_scaled_pixmap(path, self.lbl_image.width(), self.lbl_image.height())
+        scaled = load_scaled_pixmap(path, self.ui.lbl_image.width(), self.ui.lbl_image.height())
         if scaled is None:
-            self.lbl_image.clear()
-            self.lbl_image.setText("Ошибка загрузки")
-            self.lbl_image.setAlignment(Qt.AlignCenter)
+            self.ui.lbl_image.clear()
+            self.ui.lbl_image.setText("Ошибка загрузки")
+            self.ui.lbl_image.setAlignment(Qt.AlignCenter)
             return
-        self.lbl_image.setPixmap(scaled)
-        self.lbl_image.setText("")
-        self.lbl_image.setAlignment(Qt.AlignCenter)
+        self.ui.lbl_image.setPixmap(scaled)
+        self.ui.lbl_image.setText("")
+        self.ui.lbl_image.setAlignment(Qt.AlignCenter)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -221,7 +222,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Ошибка", f"Не удалось добавить: {e}")
 
     def _on_edit(self):
-        item = self.list_quotations.currentItem()
+        item = self.ui.list_quotations.currentItem()
         if not item:
             QMessageBox.warning(self, "Внимание", "Выберите цитату для редактирования")
             return
@@ -260,7 +261,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Ошибка", f"Не удалось обновить: {e}")
 
     def _on_delete(self):
-        item = self.list_quotations.currentItem()
+        item = self.ui.list_quotations.currentItem()
         if not item:
             QMessageBox.warning(self, "Внимание", "Выберите цитату для удаления")
             return
@@ -282,23 +283,23 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "Ошибка", f"Не удалось удалить: {e}")
 
     def _on_random(self):
-        count = self.list_quotations.count()
+        count = self.ui.list_quotations.count()
         if count == 0:
             QMessageBox.information(self, "Информация", "Список цитат пуст")
             return
         idx = random.randint(0, count - 1)
-        item = self.list_quotations.item(idx)
+        item = self.ui.list_quotations.item(idx)
         self._set_quotation_text(item.text())
         rec = self.db.get_by_id(item.data(Qt.UserRole))
         if rec:
-            self.lbl_author.setText(rec['author'] or "Неизвестный автор")
+            self.ui.lbl_author.setText(rec['author'] or "Неизвестный автор")
             self._display_image(rec['image_path'])
         else:
-            self.lbl_author.setText("Автор не найден")
+            self.ui.lbl_author.setText("Автор не найден")
         self.statusBar().showMessage("Случайная цитата")
 
     def _on_copy(self):
-        text = self.lbl_quotation.toPlainText()
+        text = self.ui.lbl_quotation.toPlainText()
         if text and text != "Нажмите 'Случайная цитата'":
             QApplication.clipboard().setText(text)
             self.statusBar().showMessage("Цитата скопирована в буфер")
@@ -321,7 +322,7 @@ class MainWindow(QMainWindow):
         if saved_path is None:
             QMessageBox.critical(self, "Ошибка", "Не удалось сохранить изображение")
             return
-        current_item = self.list_quotations.currentItem()
+        current_item = self.ui.list_quotations.currentItem()
         if current_item is not None:
             rec_id = current_item.data(Qt.UserRole)
             rec = self.db.get_by_id(rec_id)
@@ -349,15 +350,15 @@ class MainWindow(QMainWindow):
         self._set_quotation_text(item.text())
         rec = self.db.get_by_id(item.data(Qt.UserRole))
         if rec:
-            self.lbl_author.setText(rec['author'] or "Неизвестный автор")
+            self.ui.lbl_author.setText(rec['author'] or "Неизвестный автор")
             self._display_image(rec['image_path'])
         else:
-            self.lbl_author.setText("Автор не найден")
+            self.ui.lbl_author.setText("Автор не найден")
         self.statusBar().showMessage(f"Выбрано: {item.text()[:30]}...")
 
     def _on_filter_changed(self):
-        author = self.combo_author.currentText()
-        category = self.combo_category.currentText()
+        author = self.ui.combo_author.currentText()
+        category = self.ui.combo_category.currentText()
         self._refresh_list(
             None if author == "Все" else author,
             None if category == "Все" else category
